@@ -5,7 +5,8 @@ import random
 class TabularQ:
 
 
-    def __init__(self, state_shape, action_shape, lr=0.99, discount=0.8, e_start=1.0, e_stop=0.1, e_steps=1000000, e_decay_enabled=True):
+    def __init__(self, state_shape, action_shape, lr=0.99, discount=0.8, e_start=1.0, e_stop=0.1, e_steps=1000, e_decay_enabled=True):
+        print(state_shape, action_shape)
         if type(state_shape) is not tuple:
             raise TypeError("state_shape must be a tuple: (14, )")
         if type(action_shape) is not int:

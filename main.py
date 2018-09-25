@@ -1,4 +1,5 @@
 from environment import Environment
+import scenario
 from algorithms.tabular_q import TabularQ
 class Runner:
 
@@ -15,8 +16,11 @@ class Runner:
             # Observe the state
             s = self.env.render()
 
+
+
             # Predict best action
             a = self.algorithm.action(s)
+
 
             # Perform action
             s1, r, t, _ = self.env.step(a)
@@ -39,12 +43,16 @@ class Runner:
 
 if __name__ == "__main__":
 
+    # Construct Scenario
+    scen = scenario.EasyScenario()
+
+
     # Setup environment
-    env = Environment()
-    tabular_q = TabularQ((14,), 14)
+    env = Environment(scenario=scen, type="shortest-path")
+    tabular_q = TabularQ(env.state_space_shape, env.action_space_shape)
 
     runner = Runner(env, tabular_q)
-    runner.run_episodes(10000)
+    runner.run_episodes(100000)
 
     print(tabular_q.Q)
 
