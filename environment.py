@@ -127,6 +127,7 @@ class Environment:
         output = self._logic(self, self.state, a)
         self.steps += 1
         self.path.append(str(self.state))
+
         return output
 
 

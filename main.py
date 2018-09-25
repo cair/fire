@@ -1,6 +1,11 @@
-from keras import Sequential
-from keras.layers import Dense
+import time
+
+from keras import Sequential, Input, Model
+from keras.layers import Dense, Flatten
 import numpy as np
+from keras.optimizers import Adam
+
+from algorithms.keras_rl import KerasRL
 from environment import Environment
 import scenario
 from algorithms.tabular_q import TabularQ
@@ -71,17 +76,25 @@ if __name__ == "__main__":
     #
     ###########################################
     env2 = Environment(scenario=scen, type="shortest-evac", debug=True)
-    model = Sequential()
-    model.add(Dense(256, activation='relu', input_shape=(env2.action_space_shape,)))
-    model.add(Dense(1024, activation='relu'))
-    model.add(Dense(1024, activation='relu'))
-    model.add(Dense(1024, activation='relu'))
-    model.add(Dense(env2.state_space.size, activation='linear'))
+
+    the_input = Input((1, ) + env2.render().shape)
+    #flatten = Flatten()(the_input)
+    x = Dense(256, activation='relu')(the_input)
+    x = Dense(1024, activation='relu')(x)
+    x = Dense(1024, activation='relu')(x)
+    x = Dense(1024, activation='relu')(x)
+    x = Dense(env2.state_space.size, activation='linear')(x)
+    x = Flatten()(x)
+
+    model = Model(inputs=[the_input], outputs=[x])
     model.compile(optimizer='adam', loss='mse')
     model.summary()
-    pre_knowledge_q = np.array(tabular_q.Q.reshape((1, env2.state_space.size)))
 
-    model.fit(np.expand_dims(env2.reset(), 0), pre_knowledge_q, epochs=200, batch_size=1, verbose=False, callbacks=[PlotLosses("Pretraining DQN")])
+    pre_knowledge_q = np.array(tabular_q.Q.reshape((1, env2.state_space.size)))
+    X = np.reshape(env2.reset(), (1, 1) + env2.state.shape)
+
+
+    model.fit(X, pre_knowledge_q, epochs=200, batch_size=1, verbose=False, callbacks=[PlotLosses("Pretraining DQN")])
     model.save_weights('output/dqn_pretrained.h5')
 
 
@@ -90,6 +103,45 @@ if __name__ == "__main__":
     # Training of Algorithms...
     #
     ###########################################
+    perf_plot = PlotPerformance()
+    EPISODES = 500
+    keras_rl = KerasRL(model=model, output_shape=env2.state_space.size)
+    keras_rl.add(keras_rl.dqn())
+
+
+    # Merge Keras-RL and Tensorforce Agents
+    agents = keras_rl.algorithms
+
+
+    for agent_class, agent_spec, agent_name, agent_type in agents:
+        print(agent_class, agent_spec, agent_type)
+
+        if agent_type == "keras-rl":
+            model.load_weights('output/dqn_pretrained.h5')
+            model.compile(optimizer='adam', loss='mse')
+
+            # Agent Init
+            agent = agent_class(**agent_spec)
+            print("Starting experiment for %s." % agent_name)
+
+            # Agent Train
+            agent.compile(Adam(lr=1e-2), metrics=['mse'])
+            history = agent.fit(env2, nb_steps=EPISODES*250, nb_max_episode_steps=1000, visualize=False, verbose=2)
+
+            # Fetch Train Summary
+            summary_step = history.history["nb_episode_steps"][:EPISODES]
+
+            # Plotting
+            perf_plot.new(agent_name)
+            start_time = time.time()
+            for episode, steps in enumerate(summary_step):
+                perf_plot.log(episode, steps)
+            print("Model: %s, Average Steps: %s, Minimum Steps: %s, Time: %.3f secs" % (name, np.average(summary_step), np.amin(summary_step), (time.time() - start_time)))
+
+
+
+
+
     #runner = Runner(env2, tabular_q2)
     #runner.run_episodes(100000)
 
