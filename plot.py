@@ -1,11 +1,19 @@
+import keras
+import matplotlib.pyplot as plt
+import os
+import json
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
 class PlotLosses(keras.callbacks.Callback):
-    def __init__(self):
+    def __init__(self, name):
+        super().__init__()
         self.i = 0
         self.fig = plt.figure()
         self.x = []
         self.losses = []
         self.val_losses = []
         self.logs = []
+        self.name = name
     #def on_train_begin(self, logs={}):
 
     def on_epoch_end(self, epoch, logs={}):
@@ -17,13 +25,25 @@ class PlotLosses(keras.callbacks.Callback):
 
         if self.i % 100 != 1:
             return False
-        clear_output(wait=True)
+        #clear_output(wait=True)
 
+        plt.title(self.name)
         plt.plot(self.x, self.losses, label="loss")
-        plt.plot(self.x, self.val_losses, label="val_loss")
+        #plt.plot(self.x, self.val_losses, label="val_loss")
         plt.legend()
-        plt.show();
+        plt.show()
 
+        file_dest = dir_path + "/output/%s/%s.%s"
+        file_name = self.name.replace(" ", "_")
+
+        plt.savefig(file_dest % ("figures", file_name, "png"))
+        plt.savefig(file_dest % ("figures", file_name, "pdf"))
+        plt.savefig(file_dest % ("figures", file_name, "eps"))
+        json.dump({
+            "name": self.name,
+            "x": self.x,
+            "y": self.losses
+        }, open(file_dest % ("plot_data", file_name, "json"), "w+"))
 
 class PlotPerformance:
     def __init__(self):
@@ -52,7 +72,7 @@ class PlotPerformance:
 
         if self.i % 5 != 1:
             return False
-        clear_output(wait=True)
+        #clear_output(wait=True)
 
         for agent_name, values in self.agents.items():
             plt.plot(values[0], values[1], label=agent_name)

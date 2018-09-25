@@ -1,0 +1,6 @@
+numpy
+keras
+tensorflow
+matplotlib
+keras-rl
+tensorforce

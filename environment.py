@@ -7,72 +7,64 @@ class EnvironmentLogic:
 
     @staticmethod
     def shortest_path(env, s, a):
-        from_room = s
-        to_room = a
-
+        print("???")
         r = -1
         t = False
 
         if env.state_space[s, a] == 1:
             env.state = a
         else:
-            r = -100
+            r = -1
 
         if env.state in env.terminal_states:
-            r = 100
+            r = 1
             t = True
 
         return env.state, r, t, {}
 
+    @staticmethod
+    def shortest_evac(env, s, a):
 
-
-        """
-            self.n_steps += 1
         # Unpack action
-        from_room = int(action % 14)    # % is the "modulo operator", the remainder of i / width;
-        to_room = int(action / 14)    # where "/" is an integer division
+        from_room = int(a % env.action_space_shape)    # % is the "modulo operator", the remainder of i / width;
+        to_room = int(a / env.action_space_shape)    # where "/" is an integer division
         t = False
 
-        if to_room == self.F: #fire location
-            r = -1000
-        elif to_room == 11 and self.adjacency[from_room,to_room] == 1 and self.state[from_room] > 0:      #exit
-            r = 100
-            self.state[from_room] -=1
-        elif to_room == 12 and self.adjacency[from_room,to_room] == 1 and self.state[from_room] > 0:      #exit
-            r = 100
-            self.state[from_room] -=1
-        elif to_room == 13 and self.adjacency[from_room,to_room] == 1 and self.state[from_room] > 0:      #exit
-            r = 100
-            self.state[from_room] -=1
-        elif (self.state[from_room] <= 0 or self.state[to_room] >= 10) and from_room != to_room:    #bottleneck
-            r = -100
-        elif self.adjacency[from_room,to_room] == 1:     #legal moves
-            self.state[from_room] -=1
-            self.state[to_room] +=1
+        if to_room in env.fire_locations:
+            r = -10
+        elif env.state[from_room] <= 0 or env.state[to_room] >= 10:
             r = -1
-        elif self.adjacency[from_room,to_room] == 0:     #illegal moves
-            r = -100
+        elif from_room == to_room:
+            r = -0.2
+        elif to_room in env.terminal_states and env.state_space[from_room, to_room] == 1 and env.state[from_room] > 0:
+            # 1. to_room is a exit, 2. its a legal action, 3. and there is a person in the from_room
+            r = 1
+            env.state[from_room] -= 1
+        elif env.state_space[from_room,to_room] == 1:     #legal moves
+            env.state[from_room] -=1
+            env.state[to_room] +=1
+            r = -0.01
+        elif env.state_space[from_room, to_room] == 0:     #illegal moves
+            r = -1
 
-        self.state[11] = 0                           #reset number of people at the exit
-        self.state[12] = 0                           #reset number of people at the exit
-        self.state[13] = 0                           #reset number of people at the exit
-        t = True if np.sum(self.state) == 0 else False
-        #print(self.state)
+        # Reset number of people at the terminal states
+        for i in env.terminal_states:
+            env.state[i] = 0
 
-        if self.max_steps is not None and self.n_steps > self.max_steps:
+        t = True if np.sum(env.state) == 0 else False
+
+        if env.max_steps is not None and env.steps > env.max_steps:
             t = True
 
-        return self.render(), r, t, _
-
-        """
-
+        return env.state, r, t, {}
 
 class Environment:
-    def __init__(self, scenario=None, max_steps=None, type='shortest-path'):
+    def __init__(self, scenario=None, max_steps=None, type='shortest-path', debug=True):
         self._logic = None
         self.type = type
         self.max_steps = max_steps
         self.steps = 0
+        self.debug = debug
 
         self.state_space = None
         self.state_space_shape = None
@@ -82,28 +74,60 @@ class Environment:
         self.terminal_states = None
         self.state = None
 
+        self.path = []
+        self.path_stats = {}
+
         scenario.apply(self) # Copy over the scenario template
-
-
+        self.scenario = scenario
         self.reset()
 
     def reset(self):
+        # Clear constructed path
+        if self.debug:
+            self.summary()
+
+            # Counter for paths found
+            proposed_path = "=>".join(self.path)
+            if proposed_path not in self.path_stats:
+                self.path_stats[proposed_path] = 1
+            else:
+                self.path_stats[proposed_path] += 1
+
+        self.path.clear()
+        self.steps = 0
+
         if self.type == "shortest-path":
             # Spawn at random pos every episode
-            self.state = random.choice([i for i in range(0, self.action_space) if i not in self.terminal_states + self.fire_locations])
+
+            self.scenario.shortest_path_state(self)
+
+            # Add initial state to path
+            self.path.append(str(self.state))
+
+            # Set environment logic
             self._logic = EnvironmentLogic.shortest_path
 
-        #elif self.scenario == "shortest-evac":
-        #    self.state = np.array([10,10,10,10,10,10,10,10,10,10,10,0,0,0])
-        #else:
-        #    raise TypeError("scenario is invalid, must be shortest-path or shortest-evac")
+        elif self.type == "shortest-evac":
+
+            self.scenario.shortest_evac_state(self)
+
+            self._logic = EnvironmentLogic.shortest_evac
+
+        else:
+            raise TypeError("scenario is invalid, must be shortest-path or shortest-evac")
 
         self.steps = 0
         return self.render()
 
+    def summary(self):
+        print("Path=%s, Steps=%s" % (self.path, self.steps))
 
     def step(self, a):
-        return self._logic(self, self.state, a)
+
+        output = self._logic(self, self.state, a)
+        self.steps += 1
+        self.path.append(str(self.state))
+        return output
 
 
     def render(self):

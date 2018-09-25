@@ -37,25 +37,6 @@ print("Fire Location: ", env.F)
 
 
 
-perf_plot = PlotPerformance()
-env = Environment()
-model = Sequential()
-model.add(Dense(256, activation='relu', input_shape=(14,)))
-model.add(Dense(1024, activation='relu'))
-model.add(Dense(1024, activation='relu'))
-model.add(Dense(1024, activation='relu'))
-#model.add(Dense(512, activation='relu'))
-model.add(Dense(196, activation='linear'))
-
-model.compile(optimizer='adam', loss='mse')
-model.summary()
-pre_knowledge_q = np.array(env1.Q.reshape((1,196)))
-
-states = env.reset().reshape((1,14))
-print(states.shape)
-print(pre_knowledge_q.shape)
-model.fit(states, pre_knowledge_q, epochs=200, batch_size=1)
-model.save_weights('pretrained.h5')
 
 from rl.agents.dqn import DQNAgent
 from rl.agents.ddpg import DDPGAgent
