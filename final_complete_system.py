@@ -26,10 +26,51 @@ from time import time
    # return p
 
 
+class BaseBot():
+
+    """
+
+        # Phase 0:
+    #
+
+    # Phase 1: Kjøpt
+    def buy_infantry:
+        pass
+
+    def buy_tanks:
+        pass
+
+    # Phase 2:
+    # Select Infantry
+    # Select Tanks
+    # Select => Move legal
+    # Select + Left
+    # Select + Right
+    # Select + Up, down
+    # S
+
+    # Phase 2.5
+    # Die Roll
+    # Retreat
 
 
-    
-    
+
+
+    """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 env = Environment()
@@ -293,30 +334,7 @@ agent_classes = [PPOAgent, VPGAgent]
 
 agent_specs = [
     # PPO
-    dict(
-        states=dict(type='float', shape=input_shape),
-        actions=dict(type='int', num_actions=25),
-        network=[dict(type='dense', size=128, activation='relu'),
-            dict(type='dense', size=256, activation='relu'),
-            dict(type='dense', size=256, activation='relu'),
-            dict(type='dense', size=256, activation='relu'),
-                ],
-        step_optimizer=dict(
-            type='adam',
-            learning_rate=1e-6
-        ),
-        batching_capacity=32,
-        subsampling_fraction=0.25,
-        likelihood_ratio_clipping=0.1,
-        optimization_steps=25,
-        update_mode=dict(
-            unit='timesteps',
-            batch_size=1,
-            frequency=1
-        ),
-        name="PPO",
-        type="tensorforce"
-    ),
+
     # VPG
     dict(
         states=dict(type='float', shape=input_shape),

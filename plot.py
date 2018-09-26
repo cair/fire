@@ -78,4 +78,15 @@ class PlotPerformance:
             plt.plot(values[0], values[1], label=agent_name)
 
         plt.legend()
-        plt.show();
+        plt.show()
+        file_dest = dir_path + "/output/%s/%s.%s"
+        file_name = self.name.replace(" ", "_")
+
+        plt.savefig(file_dest % ("figures", file_name, "png"))
+        plt.savefig(file_dest % ("figures", file_name, "pdf"))
+        plt.savefig(file_dest % ("figures", file_name, "eps"))
+        #json.dump({
+        #    "name": self.name,
+        #    "x": values[0],
+        #    "y": values[1]
+        #}, open(file_dest % ("plot_data", file_name, "json"), "w+"))

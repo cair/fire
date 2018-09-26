@@ -93,6 +93,11 @@ if __name__ == "__main__":
     pre_knowledge_q = np.array(tabular_q.Q.reshape((1, env2.state_space.size)))
     X = np.reshape(env2.reset(), (1, 1) + env2.state.shape)
 
+    for layer in model.weights:
+        layer_type = layer.name.split("_")[0]
+        layer_size = layer.shape[0]
+
+        print(layer_size, layer_type, dir(layer), layer)
 
     model.fit(X, pre_knowledge_q, epochs=200, batch_size=1, verbose=False, callbacks=[PlotLosses("Pretraining DQN")])
     model.save_weights('output/dqn_pretrained.h5')
@@ -104,7 +109,7 @@ if __name__ == "__main__":
     #
     ###########################################
     perf_plot = PlotPerformance()
-    EPISODES = 500
+    EPISODES = 50
     keras_rl = KerasRL(model=model, output_shape=env2.state_space.size)
     keras_rl.add(keras_rl.dqn())
 
