@@ -4,8 +4,10 @@ from keras import Sequential, Input, Model
 from keras.layers import Dense, Flatten
 import numpy as np
 from keras.optimizers import Adam
+from tensorforce.agents import PPOAgent
 
 from algorithms.keras_rl import KerasRL
+from algorithms.tensorforce import TensorforceRL
 from environment import Environment
 import scenario
 from algorithms.tabular_q import TabularQ
@@ -90,12 +92,18 @@ if __name__ == "__main__":
     model.compile(optimizer='adam', loss='mse')
     model.summary()
 
+
+
+
+
+
     pre_knowledge_q = np.array(tabular_q.Q.reshape((1, env2.state_space.size)))
     X = np.reshape(env2.reset(), (1, 1) + env2.state.shape)
 
     for layer in model.weights:
         layer_type = layer.name.split("_")[0]
         layer_size = layer.shape[0]
+        print(dir(layer.value))
 
         print(layer_size, layer_type, dir(layer), layer)
 
@@ -112,6 +120,9 @@ if __name__ == "__main__":
     EPISODES = 50
     keras_rl = KerasRL(model=model, output_shape=env2.state_space.size)
     keras_rl.add(keras_rl.dqn())
+
+    tensorforce = TensorforceRL(model=model, input_shape=env2.render().shape, output_shape=env2.state_space.size)
+    tensorforce.add(tensorforce.ppo())
 
 
     # Merge Keras-RL and Tensorforce Agents

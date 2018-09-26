@@ -3,7 +3,7 @@ from rl.memory import SequentialMemory
 
 class KerasRL:
 
-    def __init__(self, model, output_shape):
+    def __init__(self, model, input_shape, output_shape):
         self.algorithms = []
         self.model = model
         self.output_shape = output_shape
@@ -13,7 +13,7 @@ class KerasRL:
 
     def dueling_dqn(self):
         return DQNAgent, dict(
-            model=self.model, # Will be set later
+            model=self.model,  # Will be set later
             nb_actions=196,
             memory=SequentialMemory(limit=50000, window_length=1),
             nb_steps_warmup=1000,
