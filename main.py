@@ -108,15 +108,15 @@ if __name__ == "__main__":
     EPISODES = 100
 
     tensorforce = TensorforceRL(model=model, input_shape=env2.render().shape, output_shape=env2.state_space.size)
-    tensorforce.add(tensorforce.random())
     tensorforce.add(tensorforce.ppo())
+    tensorforce.add(tensorforce.random())
+
 
     keras_rl = KerasRL(model=model, input_shape=env2.render().shape, output_shape=env2.state_space.size)
-    keras_rl.add(keras_rl.dqn())
     keras_rl.add(keras_rl.ddqn())
     keras_rl.add(keras_rl.dueling_dqn())
     keras_rl.add(keras_rl.sarsa())
-
+    keras_rl.add(keras_rl.dqn())
 
 
     # Merge Keras-RL and Tensorforce Agents
@@ -152,7 +152,18 @@ if __name__ == "__main__":
         elif agent_type == "tensorforce":
 
             agent = agent_class(**agent_spec)
+            
+            # Add pretraining of weights here ---
+            #for tforce_layer in agent.model.network.layers:
+            #    print(dir(tforce_layer))
+            #    tforce_layer.apply([])
 
+            #print()
+
+            #for keras_layer in model.layers:
+                #print(keras_layer, keras_layer.get_weights())
+
+            exit()
             # Get prediction from agent, execute
             perf_plot.new(agent_name)
             for episode in range(EPISODES):
