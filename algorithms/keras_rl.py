@@ -14,7 +14,7 @@ class KerasRL:
     def dueling_dqn(self):
         return DQNAgent, dict(
             model=self.model,  # Will be set later
-            nb_actions=196,
+            nb_actions=self.output_shape,
             memory=SequentialMemory(limit=50000, window_length=1),
             nb_steps_warmup=1000,
             target_model_update=1e-4,
@@ -27,7 +27,7 @@ class KerasRL:
     def sarsa(self):
         return SARSAAgent, dict(
             model=self.model, # Will be set later
-            nb_actions=25,
+            nb_actions=self.output_shape,
             nb_steps_warmup=1000,
             train_interval=1,
             policy=None,
@@ -37,7 +37,7 @@ class KerasRL:
     def ddqn(self):
         return DQNAgent, dict(
             model=self.model,
-            nb_actions=25,
+            nb_actions=self.output_shape,
             memory=SequentialMemory(limit=50000, window_length=1),
             nb_steps_warmup=1000,
             target_model_update=1e-4,
