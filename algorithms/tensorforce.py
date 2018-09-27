@@ -1,4 +1,4 @@
-from tensorforce.agents import PPOAgent
+from tensorforce.agents import PPOAgent, VPGAgent, RandomAgent
 
 
 class TensorforceRL:
@@ -16,10 +16,11 @@ class TensorforceRL:
     def ppo(self):
         # Create a Proximal Policy Optimization agent
         return PPOAgent, dict(
-            states=dict(type='float', shape=env2.render().shape),
+            states=dict(type='float', shape=self.input_shape),
             actions=dict(type='int', num_actions=self.output_shape),
             network=[
                 dict(type='dense', size=256),
+                dict(type='dense', size=1024),
                 dict(type='dense', size=1024),
                 dict(type='dense', size=1024),
             ],
@@ -28,4 +29,36 @@ class TensorforceRL:
                 type='adam',
                 learning_rate=1e-4
             )
-        ), "PPO-Agent", "tensorforce"
+        ), "PPO", "tensorforce"
+
+
+    def vpg(self):
+        return VPGAgent, dict(
+            states=dict(type='float', shape=self.input_shape),
+            actions=dict(type='int', num_actions=self.output_shape),
+            network=[
+                dict(type='dense', size=256),
+                dict(type='dense', size=1024),
+                dict(type='dense', size=1024),
+                dict(type='dense', size=1024),
+            ],
+            optimizer=dict(
+                type='adam',
+                learning_rate=1e-6
+            ),
+            batching_capacity=32,
+            update_mode=dict(
+                unit='timesteps',
+                batch_size=1,
+                frequency=1
+            ),
+        ), "VPG", "tensorforce"
+
+
+    def random(self):
+        return RandomAgent, dict(
+            states=dict(type='float', shape=self.input_shape),
+            actions=dict(type='int', num_actions=self.output_shape)
+        ), "Random", "tensorforce"
+
+

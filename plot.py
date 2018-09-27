@@ -31,14 +31,13 @@ class PlotLosses(keras.callbacks.Callback):
         plt.plot(self.x, self.losses, label="loss")
         #plt.plot(self.x, self.val_losses, label="val_loss")
         plt.legend()
-        plt.show()
-
         file_dest = dir_path + "/output/%s/%s.%s"
         file_name = self.name.replace(" ", "_")
 
         plt.savefig(file_dest % ("figures", file_name, "png"))
         plt.savefig(file_dest % ("figures", file_name, "pdf"))
         plt.savefig(file_dest % ("figures", file_name, "eps"))
+        plt.show()
         json.dump({
             "name": self.name,
             "x": self.x,
@@ -49,44 +48,47 @@ class PlotPerformance:
     def __init__(self):
         self.i = 0
         self.fig = plt.figure()
-        self.agents = {}
         self.name = "N/A"
 
-        self.sx = None
-        self.sy = None
+        self.x = []
+        self.y = []
 
     def new(self, name):
         self.name = name
         self.start()
+        self.x = []
+        self.y = []
+        plt.clf()
+        plt.cla()
 
     def start(self):
-        self.agents[self.name] = [[], []]
-        self.agent = self.agents[self.name]
-
+        pass
 
 
     def log(self, x, y):
-        self.agent[0].append(x)
-        self.agent[1].append(y)
+        print(x, y)
+        self.x.append(int(x))
+        self.y.append(int(y))
         self.i += 1
 
-        if self.i % 5 != 1:
-            return False
+        #if self.i % 5 != 1:
+        #    return False
         #clear_output(wait=True)
 
-        for agent_name, values in self.agents.items():
-            plt.plot(values[0], values[1], label=agent_name)
+        plt.plot(self.x, self.y, label=self.name)
 
         plt.legend()
-        plt.show()
+
         file_dest = dir_path + "/output/%s/%s.%s"
         file_name = self.name.replace(" ", "_")
 
         plt.savefig(file_dest % ("figures", file_name, "png"))
         plt.savefig(file_dest % ("figures", file_name, "pdf"))
         plt.savefig(file_dest % ("figures", file_name, "eps"))
-        #json.dump({
-        #    "name": self.name,
-        #    "x": values[0],
-        #    "y": values[1]
-        #}, open(file_dest % ("plot_data", file_name, "json"), "w+"))
+        plt.show()
+        json.dump({
+            "name": self.name,
+            "x": self.x,
+            "y": self.y,
+        }, open(file_dest % ("plot_data", file_name, "json"), "w+"))
+

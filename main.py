@@ -92,20 +92,8 @@ if __name__ == "__main__":
     model.compile(optimizer='adam', loss='mse')
     model.summary()
 
-
-
-
-
-
     pre_knowledge_q = np.array(tabular_q.Q.reshape((1, env2.state_space.size)))
     X = np.reshape(env2.reset(), (1, 1) + env2.state.shape)
-
-    for layer in model.weights:
-        layer_type = layer.name.split("_")[0]
-        layer_size = layer.shape[0]
-        print(dir(layer.value))
-
-        print(layer_size, layer_type, dir(layer), layer)
 
     model.fit(X, pre_knowledge_q, epochs=200, batch_size=1, verbose=False, callbacks=[PlotLosses("Pretraining DQN")])
     model.save_weights('output/dqn_pretrained.h5')
@@ -117,16 +105,22 @@ if __name__ == "__main__":
     #
     ###########################################
     perf_plot = PlotPerformance()
-    EPISODES = 50
-    keras_rl = KerasRL(model=model, output_shape=env2.state_space.size)
-    keras_rl.add(keras_rl.dqn())
+    EPISODES = 100
 
     tensorforce = TensorforceRL(model=model, input_shape=env2.render().shape, output_shape=env2.state_space.size)
+    tensorforce.add(tensorforce.random())
     tensorforce.add(tensorforce.ppo())
+
+    keras_rl = KerasRL(model=model, input_shape=env2.render().shape, output_shape=env2.state_space.size)
+    keras_rl.add(keras_rl.dqn())
+    keras_rl.add(keras_rl.ddqn())
+    keras_rl.add(keras_rl.dueling_dqn())
+    keras_rl.add(keras_rl.sarsa())
+
 
 
     # Merge Keras-RL and Tensorforce Agents
-    agents = keras_rl.algorithms
+    agents = tensorforce.algorithms + keras_rl.algorithms
 
 
     for agent_class, agent_spec, agent_name, agent_type in agents:
@@ -152,8 +146,32 @@ if __name__ == "__main__":
             start_time = time.time()
             for episode, steps in enumerate(summary_step):
                 perf_plot.log(episode, steps)
-            print("Model: %s, Average Steps: %s, Minimum Steps: %s, Time: %.3f secs" % (name, np.average(summary_step), np.amin(summary_step), (time.time() - start_time)))
+            print("Model: %s, Average Steps: %s, Minimum Steps: %s, Time: %.3f secs" % (agent_name, np.average(summary_step), np.amin(summary_step), (time.time() - start_time)))
 
+
+        elif agent_type == "tensorforce":
+
+            agent = agent_class(**agent_spec)
+
+            # Get prediction from agent, execute
+            perf_plot.new(agent_name)
+            for episode in range(EPISODES):
+                t = False
+                env2.reset()
+                steps = np.zeros(EPISODES)
+                while t is False:
+                    action = agent.act(env2.render())
+                    steps[episode] += 1
+
+                    if steps[episode] >= 1000:
+                        t = True
+                        break
+
+                    s1, r, t, _ = env2.step(action)
+                    agent.observe(reward=r, terminal=t)
+
+                perf_plot.log(episode, steps[episode])
+                print("Steps=%s, Episode=%s" % (steps[episode], episode))
 
 
 

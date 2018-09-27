@@ -3,4 +3,4 @@ keras
 tensorflow
 matplotlib
 keras-rl
-tensorforce
+git+https://github.com/reinforceio/tensorforce.git@master

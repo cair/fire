@@ -7,7 +7,6 @@ class EnvironmentLogic:
 
     @staticmethod
     def shortest_path(env, s, a):
-        print("???")
         r = -1
         t = False
 
@@ -28,7 +27,6 @@ class EnvironmentLogic:
         # Unpack action
         from_room = int(a % env.action_space_shape)    # % is the "modulo operator", the remainder of i / width;
         to_room = int(a / env.action_space_shape)    # where "/" is an integer division
-        t = False
 
         if to_room in env.fire_locations:
             r = -10
