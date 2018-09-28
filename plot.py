@@ -35,15 +35,17 @@ class PlotLosses(keras.callbacks.Callback):
         file_dest = dir_path + "/output/%s/%s.%s"
         file_name = self.name.replace(" ", "_")
 
-        plt.savefig(file_dest % ("figures", file_name, "png"))
-        plt.savefig(file_dest % ("figures", file_name, "pdf"))
-        plt.savefig(file_dest % ("figures", file_name, "eps"))
-        plt.show(block=False)
+        plt.savefig(file_dest % ("figures", file_name, "png"), dpi=1200)
+        plt.savefig(file_dest % ("figures", file_name, "pdf"), dpi=1200)
+        plt.savefig(file_dest % ("figures", file_name, "eps"), dpi=1200)
+        #plt.show(block=False)
         json.dump({
             "name": self.name,
             "x": self.x,
             "y": self.losses
         }, open(file_dest % ("plot_data", file_name, "json"), "w+"))
+
+
 
 class PlotPerformance:
     def __init__(self):
@@ -54,7 +56,8 @@ class PlotPerformance:
         self.x = []
         self.y = []
 
-    def new(self, name):
+    def new(self, name, prefix):
+        self.prefix = prefix
         self.name = name
         self.start()
         self.x = []
@@ -69,22 +72,23 @@ class PlotPerformance:
         self.i += 1
 
 
-        self.to_file()
-        plt.show(block=False)
+        #self.to_file()
+        #plt.show(block=False)
 
 
 
     def to_file(self):
         plt.clf()
         plt.cla()
+        #plt.title("Performance of %s in %s node graph")
         plt.plot(self.x, self.y, label=self.name)
         plt.legend()
         file_dest = dir_path + "/output/%s/%s.%s"
-        file_name = self.name.replace(" ", "_")
+        file_name = self.prefix + "_" + self.name.replace(" ", "_")
 
-        plt.savefig(file_dest % ("figures", file_name, "png"))
-        plt.savefig(file_dest % ("figures", file_name, "pdf"))
-        plt.savefig(file_dest % ("figures", file_name, "eps"))
+        plt.savefig(file_dest % ("figures", file_name, "png"), dpi=1200)
+        plt.savefig(file_dest % ("figures", file_name, "pdf"), dpi=1200)
+        plt.savefig(file_dest % ("figures", file_name, "eps"), dpi=1200)
 
         json.dump({
             "name": self.name,

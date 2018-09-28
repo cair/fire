@@ -69,6 +69,7 @@ class Environment:
         self.fire_locations = None
         self.terminal_states = None
         self.state = None
+        self.is_terminal = False
 
         self.path = []
         self.path_stats = {}
@@ -92,6 +93,7 @@ class Environment:
         self.path.clear()
         self.steps = 0
 
+
         if self.type == "shortest-path":
             # Spawn at random pos every episode
 
@@ -113,6 +115,7 @@ class Environment:
             raise TypeError("scenario is invalid, must be shortest-path or shortest-evac")
 
         self.steps = 0
+        self.is_terminal = False
         return self.render()
 
     def summary(self):
@@ -121,6 +124,7 @@ class Environment:
     def step(self, a):
 
         output = self._logic(self, self.state, a)
+        self.is_terminal = output[2] # Update terminal state
         self.steps += 1
         self.path.append(str(self.state))
 

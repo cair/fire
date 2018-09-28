@@ -11,16 +11,19 @@ import scenario
 from algorithms.tabular_q import TabularQ
 from plot import PlotLosses
 from runner import Runner
+from visualize import visualize
 
 if __name__ == "__main__":
-    EPISODES = 1000
-    PRETRAIN_EPOCHS=200
-    MAX_STEPS = 1000
+    EPISODES = 50000
+    PRETRAIN_EPOCHS=1000
+    MAX_STEPS = 100000
 
 
 
 # Construct Scenario
-    scen = scenario.EasyScenario()
+    #scen = scenario.EasyScenario()
+    scen = scenario.UiAFirstFloorScenario()
+
 
     ############################################
     #
@@ -28,10 +31,12 @@ if __name__ == "__main__":
     #
     ###########################################
     env = Environment(scenario=scen, type="shortest-path", debug=False)
+    visualize(env)
+
     tabular_q = TabularQ(env.state_space_shape, env.action_space_shape)
 
     runner = Runner(env, tabular_q)
-    runner.run_episodes(10000)
+    runner.run_episodes(episodes=PRETRAIN_EPOCHS, max_steps=MAX_STEPS)
 
     ############################################
     #
@@ -43,9 +48,9 @@ if __name__ == "__main__":
     the_input = Input((1,) + env2.render().shape)
     x = Flatten()(the_input)
     x = Dense(128, activation='relu', use_bias=False)(x)
-    x = Dense(256, activation='relu', use_bias=False)(x)
-    x = Dense(256, activation='relu', use_bias=False)(x)
-    x = Dense(256, activation='relu', use_bias=False)(x)
+    x = Dense(512, activation='relu', use_bias=False)(x)
+    x = Dense(512, activation='relu', use_bias=False)(x)
+    x = Dense(512, activation='relu', use_bias=False)(x)
     x = Dense(env2.state_space.size, activation='linear')(x)
 
     model = Model(inputs=[the_input], outputs=[x])
@@ -63,7 +68,8 @@ if __name__ == "__main__":
     # Training of Algorithms...
     #
     ###########################################
-    tensorforce = TensorforceRL(model=model, input_shape=env2.render().shape, output_shape=env2.state_space.size)
+    tensorforce = TensorforceRL(model=model, input_shape=env2.render().shape, output_shape=env2.state_space.size, max_steps=MAX_STEPS)
+    tensorforce.add(tensorforce.dqn())
     tensorforce.add(tensorforce.ppo())
     tensorforce.add(tensorforce.vpg())
     tensorforce.add(tensorforce.random())
@@ -75,6 +81,6 @@ if __name__ == "__main__":
     keras_rl.add(keras_rl.sarsa())
 
     # Merge Keras-RL and Tensorforce Agents
-    agents = keras_rl.algorithms + tensorforce.algorithms
+    agents = tensorforce.algorithms + keras_rl.algorithms
 
-    runner.run_algorithms(env2, model, agents, episodes=EPISODES, max_steps=MAX_STEPS)
+    runner.run_algorithms(env2, model, agents, episodes=EPISODES, max_steps=MAX_STEPS, plot_every=25)

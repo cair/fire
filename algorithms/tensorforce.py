@@ -1,15 +1,16 @@
-from tensorforce.agents import PPOAgent, VPGAgent, RandomAgent
+from tensorforce.agents import PPOAgent, VPGAgent, RandomAgent, DQNAgent
 import numpy as np
 
 class TensorforceRL:
 
 
-    def __init__(self, model, input_shape, output_shape):
+    def __init__(self, model, input_shape, output_shape, max_steps):
         self.algorithms = []
         self.model = model
         self.tforce_model = self.keras_to_tensorforce(self.model)
         self.input_shape = input_shape
         self.output_shape = output_shape
+        self.max_steps = max_steps
 
     def keras_to_tensorforce(self, model):
         network_spec = []
@@ -33,17 +34,81 @@ class TensorforceRL:
     def add(self, algorithm):
         self.algorithms.append(algorithm)
 
+    def dqn(self):
+        # Create a Proximal Policy Optimization agent
+        return DQNAgent, dict(
+            states=dict(type='float', shape=self.input_shape),
+            actions=dict(type='int', num_actions=self.output_shape),
+            network=self.tforce_model,
+            batching_capacity=16,
+            update_mode=dict(
+                unit="timesteps",
+                batch_size=64,
+                frequency=4
+            ),
+            memory= dict(
+                type="replay",
+                include_next_states=True,
+                capacity=1000*16),
+            optimizer=dict(
+                type='adam',
+                learning_rate=1e-3
+            ),
+            actions_exploration=dict(
+                type="epsilon_anneal",
+                initial_epsilon=0.9,
+                final_epsilon=0.0,
+                timesteps=self.max_steps * 100
+            ),
+            double_q_model=True,
+            target_sync_frequency=500,
+            target_update_weight=0.1
+        ), "QMP-DQN", "tensorforce"
+
     def ppo(self):
         # Create a Proximal Policy Optimization agent
         return PPOAgent, dict(
             states=dict(type='float', shape=self.input_shape),
             actions=dict(type='int', num_actions=self.output_shape),
             network=self.tforce_model,
-            batching_capacity=128,
+            batching_capacity=16,
+            update_mode=dict(
+                unit="timesteps",
+                batch_size=16,
+                frequency=400
+            ),
+            #memory=dict(
+            #    type="latest",
+            #    include_next_states=True,
+            #    capacity=5000
+            #),
             step_optimizer=dict(
                 type='adam',
-                learning_rate=1e-6
+                learning_rate=1e-3
+            ),
+            discount=0.95,
+            entropy_regularization=0.01,
+            likelihood_ratio_clipping=1.0,
+            baseline_mode="states",
+            baseline=dict(
+                type="mlp",
+                sizes=[16, 16]
+            ),
+            actions_exploration=dict(
+                type="epsilon_anneal",
+                initial_epsilon=0.9,
+                final_epsilon=0.0,
+                timesteps=100000
+            ),
+            baseline_optimizer=dict(
+                type="multi_step",
+                optimizer=dict(
+                    type="adam",
+                    learning_rate=1e-3
+                ),
+                num_steps=4
             )
+
         ), "PPO", "tensorforce"
 
 

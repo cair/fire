@@ -6,3 +6,4 @@ matplotlib
 keras-rl
 git+https://github.com/reinforceio/tensorforce.git@master
 networkx
+tqdm
