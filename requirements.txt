@@ -1,6 +1,8 @@
 numpy
 keras
 tensorflow
+tensorflow-gpu
 matplotlib
 keras-rl
 git+https://github.com/reinforceio/tensorforce.git@master
+networkx

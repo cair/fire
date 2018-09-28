@@ -26,7 +26,8 @@ class PlotLosses(keras.callbacks.Callback):
         if self.i % 100 != 1:
             return False
         #clear_output(wait=True)
-
+        plt.clf()
+        plt.cla()
         plt.title(self.name)
         plt.plot(self.x, self.losses, label="loss")
         #plt.plot(self.x, self.val_losses, label="val_loss")
@@ -37,7 +38,7 @@ class PlotLosses(keras.callbacks.Callback):
         plt.savefig(file_dest % ("figures", file_name, "png"))
         plt.savefig(file_dest % ("figures", file_name, "pdf"))
         plt.savefig(file_dest % ("figures", file_name, "eps"))
-        plt.show()
+        plt.show(block=False)
         json.dump({
             "name": self.name,
             "x": self.x,
@@ -58,34 +59,33 @@ class PlotPerformance:
         self.start()
         self.x = []
         self.y = []
-        plt.clf()
-        plt.cla()
 
     def start(self):
         pass
 
-
     def log(self, x, y):
-        print(x, y)
         self.x.append(int(x))
         self.y.append(int(y))
         self.i += 1
 
-        #if self.i % 5 != 1:
-        #    return False
-        #clear_output(wait=True)
 
+        self.to_file()
+        plt.show(block=False)
+
+
+
+    def to_file(self):
+        plt.clf()
+        plt.cla()
         plt.plot(self.x, self.y, label=self.name)
-
         plt.legend()
-
         file_dest = dir_path + "/output/%s/%s.%s"
         file_name = self.name.replace(" ", "_")
 
         plt.savefig(file_dest % ("figures", file_name, "png"))
         plt.savefig(file_dest % ("figures", file_name, "pdf"))
         plt.savefig(file_dest % ("figures", file_name, "eps"))
-        plt.show()
+
         json.dump({
             "name": self.name,
             "x": self.x,

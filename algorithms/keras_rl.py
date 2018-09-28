@@ -16,19 +16,19 @@ class KerasRL:
             model=self.model,  # Will be set later
             nb_actions=self.output_shape,
             memory=SequentialMemory(limit=50000, window_length=1),
-            nb_steps_warmup=1000,
+            nb_steps_warmup=60,
             target_model_update=1e-4,
             enable_dueling_network=True,
             dueling_type='avg',
             policy=None,
-            batch_size=128
+            batch_size=16
         ), "QMP-DQN (Proposed)", "keras-rl"
 
     def sarsa(self):
         return SARSAAgent, dict(
             model=self.model, # Will be set later
             nb_actions=self.output_shape,
-            nb_steps_warmup=1000,
+            nb_steps_warmup=60,
             train_interval=1,
             policy=None,
             name="SARSA"
@@ -39,10 +39,10 @@ class KerasRL:
             model=self.model,
             nb_actions=self.output_shape,
             memory=SequentialMemory(limit=50000, window_length=1),
-            nb_steps_warmup=1000,
+            nb_steps_warmup=60,
             target_model_update=1e-4,
             policy=None,
-            batch_size=32
+            batch_size=16
         ), "DDQN", "keras-rl"
 
     def dqn(self):
@@ -50,9 +50,9 @@ class KerasRL:
             model=self.model, # Will be set later
             nb_actions=self.output_shape,
             memory=SequentialMemory(limit=50000, window_length=1),
-            nb_steps_warmup=1000,
+            nb_steps_warmup=60,
             target_model_update=1e-3,
             enable_double_dqn=False,
             policy=None,
-            batch_size=32
+            batch_size=16
         ), "DQN", "keras-rl"

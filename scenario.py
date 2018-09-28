@@ -1,6 +1,7 @@
 import random
 import numpy as np
-
+import matplotlib.pyplot as plt
+from networkx import nx
 class BaseScenario:
 
     def __init__(self):
@@ -46,6 +47,32 @@ class EasyScenario(BaseScenario):
 
         self.fire_locations = [2, 3, 4]
         self.terminal_states = [7]
+
+
+        import sys
+
+
+
+
+        G = nx.from_numpy_matrix(self.state_space)
+        G.edges(data=True)
+
+        # some properties
+        """print("node degree clustering")
+        for v in nx.nodes(G):
+            print('%s %d %f' % (v, nx.degree(G, v), nx.clustering(G, v)))
+
+        # print the adjacency list to terminal
+        try:
+            nx.write_adjlist(G, sys.stdout)
+        except TypeError:  # Python 3.x
+            nx.write_adjlist(G, sys.stdout.buffer)
+
+        nx.draw(G)
+        plt.show()"""
+
+
+
 
     def shortest_path_state(self, env):
         env.state = random.choice([i for i in range(0, self.action_space) if i not in list(self.terminal_states) + list(self.fire_locations)])
